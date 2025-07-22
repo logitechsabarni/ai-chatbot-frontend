@@ -1,4 +1,3 @@
-// src/components/Chat.jsx
 import React, { useState } from "react";
 import axios from "axios";
 
@@ -20,7 +19,7 @@ const Chat = () => {
 
     try {
       const response = await axios.post(`${backendURL}/chat`, {
-        messages: updatedMessages,
+        message: input,
       });
 
       const botMessage = {
