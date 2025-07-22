@@ -6,7 +6,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
 
-  const backendUrl = import.meta.env.VITE_API_KEY_URL || "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
   const handleSend = async () => {
     if (!input.trim()) return;
