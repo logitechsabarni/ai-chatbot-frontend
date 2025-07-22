@@ -1,3 +1,3 @@
 git add .
-git commit -m "Fixed ChatBox import issue and updated component name"
+git commit -m "Fix logo import for public folder"
 git push origin main
