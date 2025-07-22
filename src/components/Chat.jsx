@@ -1,71 +1,71 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 
-const ChatBox = () => {
+export default function Chat() {
   const [input, setInput] = useState("");
-  const [response, setResponse] = useState("");
-  const [image, setImage] = useState(null);
-  const [audio, setAudio] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleTextSubmit = async () => {
-    if (!input) return;
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const newMessages = [...messages, { sender: "user", text: input }];
+    setMessages(newMessages);
+    setInput("");
+    setLoading(true);
+
     try {
-      const res = await axios.post("https://ai-chatbot-1-bhrx.onrender.com/chat", {
-        message: input,
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
       });
-      setResponse(res.data.response);
+
+      const data = await res.json();
+      if (data.response) {
+        setMessages((prev) => [...prev, { sender: "bot", text: data.response }]);
+      } else {
+        setMessages((prev) => [...prev, { sender: "bot", text: "Error: No response" }]);
+      }
     } catch (err) {
-      setResponse("Error: " + err.message);
+      setMessages((prev) => [...prev, { sender: "bot", text: "Server error occurred" }]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleImageSubmit = async () => {
-    if (!image) return;
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const res = await axios.post("https://ai-chatbot-1-bhrx.onrender.com/image", formData);
-      setResponse(`Text: ${res.data.extracted}\n\nAI: ${res.data.response}`);
-    } catch (err) {
-      setResponse("Image Error: " + err.message);
-    }
-  };
-
-  const handleAudioSubmit = async () => {
-    if (!audio) return;
-    const formData = new FormData();
-    formData.append("audio", audio);
-
-    try {
-      const res = await axios.post("https://ai-chatbot-1-bhrx.onrender.com/voice", formData);
-      setResponse(`You said: ${res.data.transcription}\n\nAI: ${res.data.response}`);
-    } catch (err) {
-      setResponse("Audio Error: " + err.message);
-    }
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") handleSend();
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto space-y-4">
-      <textarea
-        rows={3}
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask me anything..."
-        className="w-full p-2 border rounded dark:bg-gray-800"
-      />
-      <div className="flex gap-2">
-        <button onClick={handleTextSubmit} className="bg-blue-600 text-white px-4 py-2 rounded">Send</button>
-        <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
-        <button onClick={handleImageSubmit} className="bg-green-600 text-white px-4 py-2 rounded">Upload Image</button>
+    <div className="p-4 max-w-2xl mx-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 h-[400px] overflow-y-auto">
+        {messages.map((msg, index) => (
+          <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
+            <span className={`inline-block px-3 py-2 rounded-lg ${msg.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700 dark:text-white"}`}>
+              {msg.text}
+            </span>
+          </div>
+        ))}
+        {loading && <p className="text-center text-sm text-gray-500">Thinking...</p>}
       </div>
-      <div className="flex gap-2">
-        <input type="file" accept="audio/*" onChange={(e) => setAudio(e.target.files[0])} />
-        <button onClick={handleAudioSubmit} className="bg-purple-600 text-white px-4 py-2 rounded">Upload Audio</button>
+
+      <div className="flex mt-4 gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyPress}
+          className="flex-1 px-3 py-2 rounded-lg border dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+          placeholder="Ask me anything..."
+        />
+        <button
+          onClick={handleSend}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Send
+        </button>
       </div>
-      <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded whitespace-pre-wrap">{response}</div>
     </div>
   );
-};
-
-export default ChatBox;
+}
