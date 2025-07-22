@@ -1,10 +1,11 @@
+# Step 1: Initialize npm
+npm init -y
 
----
+# Step 2: Install production dependencies
+npm install react react-dom
 
-## 🧩 Dependencies
+# Step 3: Install development dependencies
+npm install -D vite tailwindcss postcss autoprefixer
 
-```bash
-npm install axios
-npm install react-icons
-npm install tailwindcss postcss autoprefixer
+# Step 4: Initialize Tailwind config
 npx tailwindcss init -p
