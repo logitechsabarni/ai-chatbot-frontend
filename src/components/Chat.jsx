@@ -1,74 +1,70 @@
-import { useState } from "react";
+// src/components/Chat.jsx
+import React, { useState } from 'react';
+import axios from 'axios';
 
-export default function Chat() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
+const Chat = () => {
+  const [userInput, setUserInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!userInput.trim()) return;
 
-    const newMessages = [...messages, { sender: "user", text: input }];
-    setMessages(newMessages);
-    setInput("");
-    setLoading(true);
+    const newMessage = { sender: 'user', text: userInput };
+    setChatHistory([...chatHistory, newMessage]);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+      const res = await axios.post('https://smartcare-ai-chatbot.onrender.com/chat', {
+        message: userInput,
       });
 
-      const data = await res.json();
-      console.log("📩 Response from backend:", data); // Debug log
+      const botResponse = res.data.response;
 
-      if (data.response) {
-        setMessages((prev) => [...prev, { sender: "bot", text: data.response }]);
-      } else {
-        setMessages((prev) => [...prev, { sender: "bot", text: "Error: No response from AI" }]);
-      }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setMessages((prev) => [...prev, { sender: "bot", text: "Server error occurred" }]);
-    } finally {
-      setLoading(false);
+      setChatHistory(prev => [
+        ...prev,
+        newMessage,
+        { sender: 'bot', text: botResponse },
+      ]);
+    } catch (error) {
+      console.error('Error:', error);
+      setChatHistory(prev => [
+        ...prev,
+        newMessage,
+        { sender: 'bot', text: 'Error: Could not fetch response.' },
+      ]);
     }
-  };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleSend();
+    setUserInput('');
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 h-[400px] overflow-y-auto">
-        {messages.map((msg, index) => (
-          <div key={index} className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}>
-            <span className={`inline-block px-3 py-2 rounded-lg ${msg.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-700 dark:text-white"}`}>
+    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+      <div className="space-y-4 h-80 overflow-y-auto mb-4 border border-gray-200 dark:border-gray-700 p-3 rounded">
+        {chatHistory.map((msg, index) => (
+          <div key={index} className={`text-${msg.sender === 'user' ? 'right' : 'left'}`}>
+            <p className={`p-2 rounded-lg inline-block ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
               {msg.text}
-            </span>
+            </p>
           </div>
         ))}
-        {loading && <p className="text-center text-sm text-gray-500">Thinking...</p>}
       </div>
-
-      <div className="flex mt-4 gap-2">
+      <div className="flex gap-2">
         <input
           type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-          className="flex-1 px-3 py-2 rounded-lg border dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-          placeholder="Ask me anything..."
+          className="flex-grow p-2 rounded border dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Type your message..."
+          value={userInput}
+          onChange={e => setUserInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
         />
         <button
           onClick={handleSend}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
         >
           Send
         </button>
       </div>
     </div>
   );
-}
+};
+
+export default Chat;
