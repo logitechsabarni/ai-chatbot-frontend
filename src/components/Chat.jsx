@@ -1,56 +1,69 @@
 // src/components/Chat.jsx
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
-export default function Chat() {
+const Chat = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const backendUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+  const backendURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-  const handleSend = async () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
+    const userMessage = { role: "user", content: input };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
+    setLoading(true);
 
     try {
-      const response = await axios.post(`${backendUrl}/chat`, { message: input });
+      const response = await axios.post(`${backendURL}/chat`, {
+        messages: updatedMessages,
+      });
+
       const botMessage = {
-        role: "bot",
-        content: response.data.response || "No response from server.",
+        role: "assistant",
+        content: response.data.response,
       };
-      setMessages([...newMessages, botMessage]);
+
+      setMessages([...updatedMessages, botMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
-      const errorMsg = {
-        role: "bot",
-        content: "⚠️ Error: Could not reach backend.",
-      };
-      setMessages([...newMessages, errorMsg]);
+      setMessages([
+        ...updatedMessages,
+        { role: "assistant", content: "⚠️ Server error. Try again later." },
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSend();
+    if (e.key === "Enter") sendMessage();
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded shadow p-4">
+    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
       <div className="h-96 overflow-y-auto mb-4 space-y-2">
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`p-2 rounded-md ${
+            className={`p-2 rounded-lg ${
               msg.role === "user"
-                ? "bg-blue-100 dark:bg-blue-700 text-right"
-                : "bg-gray-200 dark:bg-gray-700 text-left"
+                ? "bg-blue-100 dark:bg-blue-700 text-right ml-auto"
+                : "bg-gray-200 dark:bg-gray-600 text-left mr-auto"
             }`}
           >
             {msg.content}
           </div>
         ))}
+        {loading && (
+          <div className="text-gray-500 dark:text-gray-300 italic">
+            SmartCare is typing...
+          </div>
+        )}
       </div>
       <div className="flex gap-2">
         <input
@@ -58,11 +71,11 @@ export default function Chat() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="flex-1 px-4 py-2 rounded border dark:bg-gray-900 dark:border-gray-600"
-          placeholder="Type your message..."
+          placeholder="Ask something..."
+          className="flex-1 p-2 rounded border dark:border-gray-700 dark:bg-gray-700 dark:text-white"
         />
         <button
-          onClick={handleSend}
+          onClick={sendMessage}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Send
@@ -70,4 +83,6 @@ export default function Chat() {
       </div>
     </div>
   );
-}
+};
+
+export default Chat;
