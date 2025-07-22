@@ -1,15 +1,3 @@
-# Initialize Git if not done already
-git init
-
-# Add all files
 git add .
-
-# Commit your changes
-git commit -m "Initial commit with frontend"
-
-# Connect to GitHub repo (replace URL)
-git remote add origin https://github.com/your-username/ai-chatbot-frontend.git
-
-# Push code
-git branch -M main
-git push -u origin main
+git commit -m "Moved index.html to root for Vercel deployment"
+git push
