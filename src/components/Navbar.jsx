@@ -1,23 +1,26 @@
-import React from "react";
+import { useEffect, useState } from "react";
 
-const Navbar = () => {
+export default function Navbar() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, [darkMode]);
+
   return (
-    <nav className="bg-gray-900 text-white px-4 py-3 flex justify-between items-center shadow-md">
-      <div className="flex items-center gap-2">
-        {/* ✅ Directly use public path for logo */}
+    <nav className="flex justify-between items-center px-6 py-4 bg-gray-100 dark:bg-gray-900 shadow">
+      <div className="flex items-center gap-3">
         <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-        <span className="font-semibold text-xl">SmartCare AI</span>
+        <span className="text-xl font-bold text-gray-800 dark:text-white">
+          SmartCare AI
+        </span>
       </div>
-      <div>
-        <a
-          href="#"
-          className="text-gray-300 hover:text-white transition duration-200"
-        >
-          Home
-        </a>
-      </div>
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        className="px-3 py-1 rounded border dark:border-gray-600 text-gray-800 dark:text-white"
+      >
+        {darkMode ? "☀️" : "🌙"}
+      </button>
     </nav>
   );
-};
-
-export default Navbar;
+}
