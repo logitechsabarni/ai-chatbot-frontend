@@ -14,17 +14,14 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/chat`;
-      console.log("🔗 Backend URL:", apiUrl);
-
-      const res = await fetch(apiUrl, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
 
       const data = await res.json();
-      console.log("📩 Response from backend:", data);
+      console.log("📩 Response from backend:", data); // Debug log
 
       if (data.response) {
         setMessages((prev) => [...prev, { sender: "bot", text: data.response }]);
@@ -32,7 +29,7 @@ export default function Chat() {
         setMessages((prev) => [...prev, { sender: "bot", text: "Error: No response from AI" }]);
       }
     } catch (err) {
-      console.error("❌ Fetch error:", err);
+      console.error("❌ Error:", err);
       setMessages((prev) => [...prev, { sender: "bot", text: "Server error occurred" }]);
     } finally {
       setLoading(false);
